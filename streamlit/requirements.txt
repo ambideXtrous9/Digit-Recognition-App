@@ -1,0 +1,6 @@
+numpy
+mlflow
+streamlit-drawable-canvas
+streamlit
+google-cloud
+google-cloud-storage

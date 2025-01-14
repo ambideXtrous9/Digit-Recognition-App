@@ -1,0 +1,13 @@
+numpy
+tqdm
+torch --index-url https://download.pytorch.org/whl/cu124
+torchvision --index-url https://download.pytorch.org/whl/cu124
+torchaudio --index-url https://download.pytorch.org/whl/cu124
+mlflow
+torchinfo
+streamlit-drawable-canvas
+matplotlib
+streamlit
+gunicorn
+google-cloud
+google-cloud-storage
