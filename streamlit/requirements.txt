@@ -1,6 +1,14 @@
 numpy
 mlflow
+tqdm
+torch
+torchvision
+torchaudio
+mlflow
+torchinfo
 streamlit-drawable-canvas
+matplotlib
 streamlit
+gunicorn
 google-cloud
 google-cloud-storage
