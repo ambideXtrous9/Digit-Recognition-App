@@ -2,12 +2,17 @@ import torch
 from model import MNISTNeuralNet
 import mlflow
 from hyperparams import params
+import os
 
 
-trackinguri = "http://127.0.0.1:5000/"
+trackinguri = "http://35.200.174.226:5000/"
+
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'maximal-shadow-446510-n3-3117c795436e.json'
+
 
 mlflow.set_tracking_uri(trackinguri)
 client = mlflow.MlflowClient(tracking_uri=trackinguri)
+
 
 def getModel():
     mnist_model = MNISTNeuralNet(hidden_dim=params["hidden_dim"],dropout_prob=params["dropout_prob"])

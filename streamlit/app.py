@@ -1,6 +1,5 @@
 import pandas as pd
 from PIL import Image
-import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,8 +9,20 @@ import torch
 from torchvision import transforms
 from loadmodel import getModel
 
+import streamlit as st
 
-model = getModel()
+
+@st.cache_resource
+def load_model():
+    if 'models' not in st.session_state:
+        st.session_state.models = getModel()
+        return st.session_state.models
+    
+    
+if st.button("Refresh Models"):
+    st.cache_resource.clear()
+
+model = load_model()
 
 
 

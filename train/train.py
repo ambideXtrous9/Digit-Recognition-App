@@ -6,15 +6,16 @@ import mlflow
 from torchinfo import summary
 from DataLoader import train_val_dataloader
 from hyperparams import params
+import os
 
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'maximal-shadow-446510-n3-3117c795436e.json'
 
-
-trackinguri = "http://127.0.0.1:5000/"
+trackinguri = "http://35.200.174.226:5000/"
 
 mlflow.set_tracking_uri(trackinguri)
 client = mlflow.MlflowClient(tracking_uri=trackinguri)
 
-MLFLOW_EXPERIMENT_NAME = "Digit-Recognition"
+MLFLOW_EXPERIMENT_NAME = "MNISTDigitRecognizer"
 
 mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
 
