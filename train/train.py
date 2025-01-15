@@ -7,14 +7,29 @@ from torchinfo import summary
 from DataLoader import train_val_dataloader
 from hyperparams import params
 
-mlflow.set_tracking_uri("sqlite:///mlflow.db")
-mlflow.set_experiment("Digit-Recognition")
+
+
+trackinguri = "http://127.0.0.1:5000/"
+
+mlflow.set_tracking_uri(trackinguri)
+client = mlflow.MlflowClient(tracking_uri=trackinguri)
+
+MLFLOW_EXPERIMENT_NAME = "Digit-Recognition"
+
+mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
+
+experiment = mlflow.get_experiment_by_name(MLFLOW_EXPERIMENT_NAME)
+exp_id = experiment.experiment_id if experiment else mlflow.create_experiment(MLFLOW_EXPERIMENT_NAME)
+ 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 model = MNISTNeuralNet(hidden_dim=params["hidden_dim"],dropout_prob=params["dropout_prob"])
 
 model.to(device)
+
+state_dict_path = "mnist_model_state_dict.pth"
+
 
 loss_fnc = nn.CrossEntropyLoss(reduction='mean')
 optimizer = torch.optim.AdamW(lr=params["learning_rate"],params=model.parameters())
@@ -75,16 +90,24 @@ def valFunc(epoch,model,val_dataloader):
 
 def trainer(epochs,model,train_dataloader,val_dataloader):
 
+    loss_track = float('inf')
+
     for i in range(1,epochs+1):
         TL,TA = trainFunc(i,model,train_dataloader)
         mlflow.log_metric("Training Loss", TL)
         mlflow.log_metric("Training Accuracy", TA)
         VL,VA = valFunc(i,model,train_dataloader)
+
+        if(VL <= loss_track):
+            loss_track = VL
+            torch.save(model.state_dict(), state_dict_path)
+            mlflow.log_artifact(state_dict_path, artifact_path="model_weights")
+
         mlflow.log_metric("Validation Loss", VL)
         mlflow.log_metric("Validation Accuracy", VA)
         
     
-with mlflow.start_run():
+with mlflow.start_run(experiment_id=exp_id) as run:
 
     # Log training parameters.
     mlflow.log_params(params)
@@ -95,11 +118,11 @@ with mlflow.start_run():
             val_dataloader)
     
     # Log model summary.
-    with open("model_summary.txt", "w") as f:
+    with open("model_summary.txt", "w",encoding="utf-8") as f:
         f.write(str(summary(model)))
     mlflow.log_artifact("model_summary.txt")
     
     # Save the trained model to MLflow.
-    mlflow.pytorch.log_model(model, "model")
+    mlflow.pytorch.log_model(model, "mymodel")
     
     
