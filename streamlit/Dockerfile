@@ -10,6 +10,6 @@ COPY app.py requirements.txt /app/
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # Expose port you want your app on
-EXPOSE 8501
+EXPOSE 8601
 
-CMD ["streamlit", "run", "app.py", "–server.port=8501", "–server.address=0.0.0.0"]
+CMD ["streamlit", "run", "app.py", "–server.port=8601", "–server.address=0.0.0.0"]
