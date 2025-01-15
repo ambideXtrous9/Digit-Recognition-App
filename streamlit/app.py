@@ -5,36 +5,15 @@ from streamlit_drawable_canvas import st_canvas
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image, ImageOps     
-import mlflow
 import numpy as np
-from mlflow import MlflowClient
+import torch
+from torchvision import transforms
+from loadmodel import getModel
 
 
-trackinguri = "http://127.0.0.1:5000/"
+model = getModel()
 
-mlflow.set_tracking_uri(trackinguri)
-client = MlflowClient(tracking_uri=trackinguri)
 
-# Load the model
-model_name = "MNIST-Digit-Recognizer"
-stage = "Production"
-
-# Get the latest version of the model in the specified stage
-latest_versions = client.get_latest_versions(name=model_name, stages=[stage])
-
-# Print the model name and version
-for version in latest_versions:
-    print(f"\nModel Name: {version.name}, Version: {version.version}\n")
-    
-model_uri = f"models:/{model_name}/{stage}"
-
-Dependencis = mlflow.pyfunc.get_model_dependencies(model_uri)
-
-print("\nDigit Recognizer\n")
-
-model = mlflow.pyfunc.load_model(model_uri)
-
-print("\nDigit Recognizer\n")
 
 st.title("Digit Recognizer")
 
@@ -55,23 +34,39 @@ if st.button('Predict'):
     if canvas_result.image_data is not None:
         img = canvas_result.image_data
         
-        input_image = Image.fromarray(img.astype('uint8'),'RGBA')
+        input_image = Image.fromarray(img.astype('uint8'), 'RGBA')
         input_image.save('img.png')
         img = Image.open("img.png")
-        
-        image = ImageOps.grayscale(img)
-        image = ImageOps.invert(image)
-        img = image.resize((28,28))
+
+        # Process the image
+        image = ImageOps.grayscale(img)  # Convert to grayscale
+        image = ImageOps.invert(image)   # Invert colors
+        img = image.resize((28, 28))  # Resize to 28x28
         img = np.array(img, dtype='float32')
         img = img/255
-        img = img.reshape((1,1,28,28)) 
+
+        # Convert the image to a PyTorch tensor
+        transform = transforms.ToTensor()  # Convert to tensor and scale pixel values to [0,1]
+        image_tensor = transform(img)
+
+        # Add batch dimension
+        image_tensor = image_tensor.unsqueeze(0)  # Shape: [1, 1, 28, 28]
+
+        # Perform inference
         
-        pred = model.predict(image)
-        # Get the max probability
-        max_prob = np.max(pred)
-        # Get the index of the max probability
-        max_prob_index = np.argmax(pred)
+        if model:
+            with torch.no_grad():
+                output = model(image_tensor)  # Forward pass
+                predicted_label = torch.argmax(output, dim=1).item()  # Get predicted class
+                confidence = output[0][predicted_label].item() * 100  # Confidence in percentage
+
+                    
+            
+            st.write(f"**Predicted Digit : {predicted_label}**")
+            st.write(f"**Confidence : {confidence}**")
         
-        
-        st.write(f"**Predicted Digit : {max_prob_index}**")
-        st.write(f"**Confidence : {max_prob}**")
+        else :
+            
+            st.write(f"**No Model in Production..!!**")
+            
+            
