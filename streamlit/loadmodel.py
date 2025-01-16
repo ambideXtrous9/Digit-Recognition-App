@@ -32,14 +32,12 @@ def getModel():
         run_id = latest_version.run_id
 
         artifact_uri = client.get_run(run_id).info.artifact_uri
+        
+        dict_path = artifact_uri + "/model_weights/mnist_model_state_dict.pth"
 
-        model_path = mlflow.artifacts.download_artifacts(artifact_uri=artifact_uri,
-                                                        dst_path='statedict')
+        model_path = mlflow.artifacts.download_artifacts(artifact_uri=dict_path,dst_path='.')
 
-
-        ml_path = 'statedict/artifacts/model_weights/mnist_model_state_dict.pth'
-
-        state_dict = torch.load(ml_path)
+        state_dict = torch.load(model_path,weights_only=False)
         mnist_model.load_state_dict(state_dict)
         model = mnist_model.eval()
         
